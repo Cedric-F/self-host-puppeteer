@@ -3,6 +3,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const puppeteer = require('puppeteer');
+const { executablePath } = require('puppeteer');
 
 const app = express();
 app.use(cors());
@@ -21,8 +22,9 @@ app.post('/pdf', async (req, res) => {
   let browser;
   try {
     browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: executablePath(), // ← ceci force l’utilisation du bon Chrome
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      headless: true,
     });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
