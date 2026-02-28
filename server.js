@@ -4,6 +4,10 @@ const puppeteer = require('puppeteer');
 const app = express();
 app.use(express.json({ limit: '5mb' }));
 
+app.get('/', (req, res) => {
+  res.json({alive: true, message: 'PDF service is running'});
+});
+
 app.post('/pdf', async (req, res) => {
   const { html, filename } = req.body;
   if (!html) return res.status(400).json({ error: 'Missing html' });
