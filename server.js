@@ -29,7 +29,7 @@ app.post('/pdf', async (req, res) => {
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: 'networkidle0' });
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 90000 });
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
