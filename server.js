@@ -67,27 +67,33 @@ app.post('/pdf', async (req, res) => {
     page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 90000 });
 
-    const pdfBuffer = await page.pdf({
+    const pdfData = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: { top: '12mm', bottom: '12mm', left: '12mm', right: '12mm' },
       preferCSSPageSize: true,
     });
 
+    // Important: forcer un Buffer (évite la sérialisation JSON d’un Uint8Array)
+    const pdfBuffer = Buffer.isBuffer(pdfData) ? pdfData : Buffer.from(pdfData);
+
+    res.status(200);
     res.set({
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${filename || 'document'}.pdf"`,
+      'Content-Length': String(pdfBuffer.length),
       'Cache-Control': 'no-store',
     });
-    res.send(pdfBuffer);
+
+    // Important: envoyer en binaire
+    res.end(pdfBuffer);
   } catch (err) {
     console.error('Error generating PDF:', err);
 
-    // Si Chromium a crash, on ferme et on force une relance au prochain appel
     await safeCloseBrowser();
 
     res.status(500).json({
-      error: err.message,
+      error: err && err.message ? err.message : String(err),
       chromePath: typeof executablePath === 'function' ? executablePath() : undefined,
       puppeteerCacheDir: process.env.PUPPETEER_CACHE_DIR,
     });
