@@ -21,9 +21,11 @@ app.post('/pdf', async (req, res) => {
 
   let browser;
   try {
+    const chromePath = executablePath();
+    console.log('Puppeteer Chrome executablePath:', chromePath);
     browser = await puppeteer.launch({
       headless: 'new',
-      executablePath: executablePath(), // ← ceci force l’utilisation du bon Chrome
+      executablePath: chromePath,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
     const page = await browser.newPage();
@@ -37,13 +39,17 @@ app.post('/pdf', async (req, res) => {
     await browser.close();
     res.set({
       'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${filename || 'document'}.pdf"`,
+      'Content-Disposition': `attachment; filename="${filename || 'document'}.pdf"`
     });
     res.send(pdfBuffer);
   } catch (err) {
     if (browser) await browser.close();
     console.error('Error generating PDF:', err);
-    res.status(500).json({ error: err.message });
+    res.status(500).json({
+      error: err.message,
+      chromePath: (typeof executablePath === 'function') ? executablePath() : undefined,
+      env: process.env.PUPPETEER_CACHE_DIR,
+    });
   }
 });
 
