@@ -40,9 +40,10 @@ app.post('/pdf', async (req, res) => {
     res.send(pdfBuffer);
   } catch (err) {
     if (browser) await browser.close();
+    console.error('Error generating PDF:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => console.log('PDF service running on port', PORT));
